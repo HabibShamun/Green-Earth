@@ -126,3 +126,65 @@ const loadCards=(data)=> {
     manageSpinner(false,"mid-section");
 }
 
+const addToCart = (id) => {
+    const cart = document.getElementById("cart-cards");
+    const totalAmountText = document.getElementById("total-amount").innerText;
+    const totalAmount = Number(totalAmountText.replace(/[^0-9.]/g, ""));
+
+    fetch(`https://openapi.programming-hero.com/api/plant/${id}`)
+    .then(res => res.json())
+    .then(data => {
+        const plant = data.plants;
+        const existingItem = document.getElementById(`cart-${plant.id}`);
+
+  if (existingItem) {
+            const quantityText = existingItem.querySelector(".cart-quantity");
+         let quantity = parseInt(quantityText.innerText);
+            quantity += 1;
+            quantityText.innerText = quantity;
+
+            const newTotal = totalAmount + plant.price;
+            document.getElementById("total-amount").innerText = `$${newTotal.toFixed(2)}`;
+        } else {
+            const type = document.createElement("div");
+            type.innerHTML = `
+      <div id="cart-${plant.id}" class="flex justify-between items-center bg-[#F0FDF4] p-[15px] rounded-xl">
+                <div class="space-y-2">
+                    <h1 class="font-bold">${plant.name}</h1>
+                    <p class="cart-price text-gray-500">$${plant.price} × <span class="cart-quantity">1</span></p>
+                </div>
+                <p onclick="removeCart(${plant.id})" class="cursor-pointer text-gray-500"><i class="fa-solid fa-xmark"></i></p>
+            </div>
+            `;
+            cart.appendChild(type);
+            const newTotal = totalAmount + plant.price;
+            document.getElementById("total-amount").innerText = `$${newTotal.toFixed(2)}`;
+        }
+    });
+}
+
+const removeCart = (id) => {
+    const item = document.getElementById(`cart-${id}`);
+    if (!item) {
+        return;
+}
+    const quantitySpan = item.querySelector(".cart-quantity");
+    const quantity = parseInt(quantitySpan.innerText);
+
+const priceText = item.querySelector(".cart-price").innerText;
+    const priceMatch = priceText.match(/\$([0-9.]+)/);
+    const price = priceMatch ? parseFloat(priceMatch[1]) : 0;
+
+    const totalAmountText = document.getElementById("total-amount").innerText;
+ const totalAmount = Number(totalAmountText.replace(/[^0-9.]/g, ""));
+
+const newTotal = Math.max(0, totalAmount - price);
+
+    if (quantity > 1) {
+      quantitySpan.innerText = quantity - 1;
+    } else {
+  item.remove();
+    }
+
+    document.getElementById("total-amount").innerText = `$${newTotal.toFixed(2)}`;
+};
